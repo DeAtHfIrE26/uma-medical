@@ -47,14 +47,16 @@ export const useAuthStore = create<AuthState>()(
 export function initializeAuth() {
   const store = useAuthStore.getState()
 
-  supabase.auth.getSession()
+  withTimeout(supabase.auth.getSession(), 5000)
     .then(({ data: { session } }) => {
       store.setSession(session)
       store.setLoading(false)
       store.setInitialized(true)
 
       if (session?.user) {
-        loadProfile(session.user.id)
+        loadProfile(session.user.id).catch(() => {
+          store.setProfile(null)
+        })
       }
     })
     .catch(() => {
@@ -68,9 +70,14 @@ export function initializeAuth() {
     async (_event, session) => {
       store.setSession(session)
       store.setLoading(false)
+      store.setInitialized(true)
 
       if (session?.user) {
-        await loadProfile(session.user.id)
+        try {
+          await loadProfile(session.user.id)
+        } catch {
+          store.setProfile(null)
+        }
       } else {
         store.setProfile(null)
         store.clear()

@@ -139,7 +139,7 @@ export function SettingsPage() {
         >
           <p className="px-4 pt-3 pb-2 text-surface-400 text-xs font-semibold uppercase tracking-wider">System</p>
           <SettingsRow icon={Bell} label="Notifications" sublabel="Coming soon" />
-          <SettingsRow icon={Info} label="About" sublabel="Powered by Gemini AI · AES-256 Encrypted" />
+          <SettingsRow icon={Info} label="About" sublabel="Powered by secure server-side AI parsing" />
         </motion.div>
 
         <motion.div
@@ -157,7 +157,7 @@ export function SettingsPage() {
         </motion.div>
 
         <p className="text-center text-surface-600 text-xs pb-2">
-          Secured with AES-256-GCM · Uma Medical Store
+          Private storage and server-side AI · Uma Medical Store
         </p>
       </div>
 

@@ -19,7 +19,9 @@ import { VendorsPage } from '@/pages/VendorsPage'
 import { VendorDetailPage } from '@/pages/VendorDetailPage'
 import { HistoryPage } from '@/pages/HistoryPage'
 import { SettingsPage } from '@/pages/SettingsPage'
+import { ResetPasswordPage } from '@/pages/ResetPasswordPage'
 import { FullPageLoader } from '@/components/ui/LoadingSpinner'
+import { runtimeConfigError } from '@/lib/supabase'
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, loading } = useAuth()
@@ -47,6 +49,7 @@ function AppRoutes() {
       <Route path="/login" element={<PublicRoute><LoginPage /></PublicRoute>} />
       <Route path="/register" element={<PublicRoute><RegisterPage /></PublicRoute>} />
       <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+      <Route path="/reset-password" element={<ResetPasswordPage />} />
 
       {/* Protected Routes */}
       <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
@@ -72,7 +75,32 @@ function AppRoutes() {
   )
 }
 
+function SetupErrorScreen({ message }: { message: string }) {
+  return (
+    <div className="min-h-dvh bg-surface-900 text-white flex items-center justify-center px-6">
+      <div className="glass-card max-w-lg w-full p-6 space-y-3">
+        <p className="text-warning-400 text-sm font-semibold uppercase tracking-wider">
+          Deployment configuration required
+        </p>
+        <h1 className="font-display font-bold text-2xl">Uma Medical is not fully configured</h1>
+        <p className="text-surface-300 text-sm leading-relaxed">
+          The frontend started, but one or more required public environment variables are missing.
+          Add them in your deployment provider and redeploy.
+        </p>
+        <div className="bg-surface-900 rounded-2xl px-4 py-3">
+          <p className="text-surface-400 text-xs uppercase tracking-wider mb-1">Missing configuration</p>
+          <p className="text-white text-sm break-words">{message}</p>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export default function App() {
+  if (runtimeConfigError) {
+    return <SetupErrorScreen message={runtimeConfigError} />
+  }
+
   return (
     <BrowserRouter>
       <AppRoutes />

@@ -1,8 +1,6 @@
 import { supabase } from '@/lib/supabase'
+import { apiRequest } from '@/lib/api'
 import type { User } from '@/types'
-
-// ─── Valid invite codes (stored in env, never in client bundle exposed) ───────
-// These are checked against a DB table for security
 
 export async function signIn(email: string, password: string) {
   const { data, error } = await supabase.auth.signInWithPassword({ email, password })
@@ -16,39 +14,18 @@ export async function signUp(
   fullName: string,
   inviteCode: string
 ) {
-  // Validate invite code against DB
-  const { data: invite, error: inviteError } = await supabase
-    .from('invite_codes')
-    .select('*')
-    .eq('code', inviteCode.toUpperCase().trim())
-    .eq('used', false)
-    .single()
-
-  if (inviteError || !invite) {
-    throw new Error('Invalid or already used invite code. Contact the administrator.')
-  }
-
-  // Create auth user
-  const { data, error } = await supabase.auth.signUp({
-    email,
-    password,
-    options: {
-      data: {
-        full_name: fullName,
-        role: 'admin',
-      },
-    },
-  })
-
-  if (error) throw error
-
-  // Mark invite code as used
-  await supabase
-    .from('invite_codes')
-    .update({ used: true, used_by: data.user?.id, used_at: new Date().toISOString() })
-    .eq('id', invite.id)
-
-  return data
+  return apiRequest<{ message: string }>(
+    '/api/register',
+    {
+      method: 'POST',
+      body: JSON.stringify({
+        email,
+        password,
+        fullName,
+        inviteCode,
+      }),
+    }
+  )
 }
 
 export async function signOut() {

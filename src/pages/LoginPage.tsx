@@ -143,7 +143,7 @@ export function LoginPage() {
 
       {/* Footer */}
       <div className="py-6 text-center">
-        <p className="text-surface-600 text-xs">Uma Medical Store · Secured with AES-256</p>
+        <p className="text-surface-600 text-xs">Uma Medical Store · Private storage and secure AI</p>
       </div>
     </div>
   )

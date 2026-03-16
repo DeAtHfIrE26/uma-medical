@@ -2,13 +2,13 @@ import { useEffect, useState } from 'react'
 import { useParams, useNavigate, useLocation } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import {
-  Building2, Calendar, Hash, CreditCard, User, MapPin,
+  Calendar, Hash, CreditCard, User, MapPin,
   Package, Trash2, ExternalLink, Download, CheckCircle2,
   AlertCircle, ChevronDown, ChevronUp, FileText
 } from 'lucide-react'
 import { format } from 'date-fns'
 import toast from 'react-hot-toast'
-import { getBillById, deleteBill } from '@/services/bills'
+import { getBillById, deleteBill, getBillImageUrl } from '@/services/bills'
 import { TopBar } from '@/components/layout/TopBar'
 import { PaymentModeBadge } from '@/components/ui/Badge'
 import { ConfirmModal } from '@/components/ui/Modal'
@@ -44,6 +44,7 @@ export function BillDetailPage() {
   const isFresh = location.state?.freshlyScanned
 
   const [bill, setBill] = useState<Bill | null>(null)
+  const [billImageUrl, setBillImageUrl] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [deleteModalOpen, setDeleteModalOpen] = useState(false)
   const [deleting, setDeleting] = useState(false)
@@ -56,6 +57,20 @@ export function BillDetailPage() {
       .catch(() => toast.error('Failed to load bill'))
       .finally(() => setLoading(false))
   }, [id])
+
+  useEffect(() => {
+    if (!bill?.image_url) {
+      setBillImageUrl(null)
+      return
+    }
+
+    getBillImageUrl(bill.image_url)
+      .then(setBillImageUrl)
+      .catch(() => {
+        setBillImageUrl(null)
+        toast.error('Failed to load the stored bill image')
+      })
+  }, [bill?.image_url])
 
   const handleDelete = async () => {
     if (!bill) return
@@ -169,14 +184,14 @@ export function BillDetailPage() {
         </div>
 
         {/* Bill Image */}
-        {bill.image_url && (
+        {billImageUrl && (
           <div className="glass-card overflow-hidden">
             <div className="px-4 py-3 border-b border-surface-700/30 flex items-center justify-between">
               <p className="text-surface-300 text-sm font-medium flex items-center gap-2">
                 <FileText size={15} className="text-surface-500" /> Original Bill
               </p>
               <a
-                href={bill.image_url}
+                href={billImageUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-brand-400 text-xs flex items-center gap-1"
@@ -184,7 +199,7 @@ export function BillDetailPage() {
                 View <ExternalLink size={12} />
               </a>
             </div>
-            <img src={bill.image_url} alt="Bill" className="w-full object-contain max-h-64" />
+            <img src={billImageUrl} alt="Bill" className="w-full object-contain max-h-64" />
           </div>
         )}
 

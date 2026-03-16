@@ -11,7 +11,7 @@ export default defineConfig({
       devOptions: {
         enabled: false,
       },
-      includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
+      includeAssets: ['favicon.svg', 'pwa-192x192.svg'],
       manifest: {
         name: 'Uma Medical Store',
         short_name: 'UmaMed',
@@ -42,7 +42,10 @@ export default defineConfig({
         ],
       },
       workbox: {
+        cleanupOutdatedCaches: true,
+        clientsClaim: true,
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
+        navigateFallbackDenylist: [/^\/api\//],
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
@@ -53,6 +56,7 @@ export default defineConfig({
             },
           },
         ],
+        skipWaiting: true,
       },
     }),
   ],

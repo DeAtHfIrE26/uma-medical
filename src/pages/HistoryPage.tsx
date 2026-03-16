@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import {
   BarChart3, TrendingUp, IndianRupee, FileText,
-  Calendar, Building2, ChevronRight
+  Calendar, ChevronRight
 } from 'lucide-react'
 import { format, subMonths, startOfMonth, endOfMonth } from 'date-fns'
 import { useNavigate } from 'react-router-dom'

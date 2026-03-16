@@ -2,7 +2,7 @@
 
 A mobile-first PWA for managing pharmaceutical bills. Scan/upload bills, AI extracts all data automatically, tracks history by vendor, and works fully offline.
 
-**Stack:** React + Vite + TypeScript + Tailwind CSS + Supabase + Gemini AI + AES-256 Encryption
+**Stack:** React + Vite + TypeScript + Tailwind CSS + Supabase + server-side Gemini AI
 
 ---
 
@@ -17,7 +17,7 @@ A mobile-first PWA for managing pharmaceutical bills. Scan/upload bills, AI extr
 5. Copy the entire contents of `supabase/schema.sql` and paste it → click **Run**
 6. Go to **Storage** → click **New Bucket**:
    - Name: `bills`
-   - Check: **Public bucket** ✓
+   - Leave **Public bucket** unchecked
    - Max file size: `10 MB`
    - Allowed MIME types: `image/jpeg, image/png, image/webp, image/heic`
    - Click Save
@@ -39,9 +39,10 @@ A mobile-first PWA for managing pharmaceutical bills. Scan/upload bills, AI extr
    ```
    VITE_SUPABASE_URL=https://YOUR-PROJECT-ID.supabase.co
    VITE_SUPABASE_ANON_KEY=eyJhbGc...your-anon-key
-   VITE_GEMINI_API_KEY=AIzaSyAWohiRHQE-RcuO-yzx3HfVM_NvQaW6jtI
-   VITE_ENCRYPTION_SECRET=uma_medical_store_super_secret_key_2024_xyz
+   SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+   GEMINI_API_KEY=your-gemini-api-key
    ```
+3. Keep `GEMINI_API_KEY` and `SUPABASE_SERVICE_ROLE_KEY` server-side only. Never prefix them with `VITE_`.
 
 ### Step 3: First Admin Registration
 
@@ -70,8 +71,8 @@ Open [http://localhost:5173](http://localhost:5173)
 4. Add environment variables in Vercel dashboard:
    - `VITE_SUPABASE_URL`
    - `VITE_SUPABASE_ANON_KEY`
-   - `VITE_GEMINI_API_KEY`
-   - `VITE_ENCRYPTION_SECRET`
+   - `SUPABASE_SERVICE_ROLE_KEY`
+   - `GEMINI_API_KEY`
 5. Click **Deploy**
 6. Once deployed, copy the production URL (e.g., `https://uma-medical.vercel.app`)
 7. In Supabase → **Authentication → URL Configuration**:
@@ -103,7 +104,7 @@ Open [http://localhost:5173](http://localhost:5173)
 | **Dashboard** | Monthly stats, top vendors, recent bills |
 | **Reports** | 6-month chart, billing timeline |
 | **Invite-Only Auth** | No random signups — invite code required |
-| **AES-256 Encryption** | Browser-native, zero-cost field encryption |
+| **Server-side AI parsing** | Gemini requests stay off the client bundle |
 | **PWA** | Installable on mobile, works offline |
 | **Multi-Admin** | Multiple admins can share the store data |
 
@@ -118,15 +119,15 @@ The AI (Gemini 2.5 Flash) auto-extracts:
 
 Works with **any** pharmaceutical bill format — different vendors, mixed Hindi/Gujarati/English.
 
-Fallback chain: `gemini-2.5-flash-preview` → `gemini-2.0-flash` → `gemini-1.5-flash`
+Fallback chain: `gemini-2.5-flash-lite` → `gemini-2.5-flash` → `gemini-3-flash-preview` → `gemini-flash-latest`
 
 ---
 
 ## Security
 
-- **Auth**: Supabase JWT tokens, auto-refresh, RLS enforced at DB level
-- **Registration**: Invite-code locked — only known admins can register
-- **Encryption**: AES-256-GCM via Web Crypto API for sensitive fields
-- **Storage**: Bill images stored in Supabase Storage with auth-required access
+- **Auth**: Supabase JWT tokens with auto-refresh and protected password reset flow
+- **Registration**: Invite-code locked via server-side registration endpoint
+- **AI secrets**: Gemini API key is used only in serverless functions, never in the client bundle
+- **Storage**: Bill images are stored in a private Supabase bucket and served with signed URLs
 - **HTTPS**: Enforced by Vercel
-- **Security Headers**: X-Frame-Options, CSP, XSS-Protection via vercel.json
+- **Security headers**: CSP, HSTS, frame protection, referrer policy, and API no-store headers via `vercel.json`

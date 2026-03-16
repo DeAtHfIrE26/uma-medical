@@ -9,7 +9,7 @@ import toast from 'react-hot-toast'
 import { parseBillImage } from '@/services/gemini'
 import { uploadBillImage, createBillFromParsed, updateBillImage } from '@/services/bills'
 import { compressImage } from '@/lib/imageUtils'
-import { resolveActiveUserId, useAuthStore } from '@/stores/auth'
+import { resolveActiveUserId } from '@/stores/auth'
 import { TopBar } from '@/components/layout/TopBar'
 import type { ParsedBill } from '@/types'
 
@@ -40,7 +40,6 @@ function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise
 
 export function ScanPage() {
   const navigate = useNavigate()
-  const { session } = useAuthStore()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const cameraInputRef = useRef<HTMLInputElement>(null)
 

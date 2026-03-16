@@ -1,6 +1,5 @@
 /**
- * AES-256-GCM encryption using the browser's native Web Crypto API.
- * Zero external dependencies, zero cost, hardware-accelerated.
+ * Reusable Web Crypto helpers for user-provided secrets and secure invite generation.
  */
 
 const ALGORITHM = 'AES-GCM'
@@ -77,18 +76,6 @@ export async function decrypt(encoded: string, password: string): Promise<string
   return new TextDecoder().decode(plaintext)
 }
 
-// ─── App-level encryption using a stable app secret ──────────────────────────
-
-const APP_SECRET = `uma_medical_${import.meta.env.VITE_ENCRYPTION_SECRET || 'uma_secret_key_2024'}`
-
-export async function encryptField(value: string): Promise<string> {
-  return encrypt(value, APP_SECRET)
-}
-
-export async function decryptField(value: string): Promise<string> {
-  return decrypt(value, APP_SECRET)
-}
-
 // ─── Hash utilities ───────────────────────────────────────────────────────────
 
 export async function hashString(input: string): Promise<string> {
@@ -103,6 +90,6 @@ export async function hashString(input: string): Promise<string> {
 
 export function generateInviteCode(): string {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
-  const arr = crypto.getRandomValues(new Uint8Array(8))
+  const arr = crypto.getRandomValues(new Uint8Array(10))
   return Array.from(arr).map(b => chars[b % chars.length]).join('')
 }

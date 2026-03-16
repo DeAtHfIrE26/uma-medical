@@ -90,8 +90,26 @@ export async function uploadBillImage(file: File, userId: string): Promise<strin
 
   if (error) throw new Error(`Storage upload failed: ${error.message}`)
 
-  const { data } = supabase.storage.from('bills').getPublicUrl(safeName)
-  return data.publicUrl
+  return safeName
+}
+
+export async function getBillImageUrl(imagePath: string): Promise<string> {
+  if (!imagePath) return ''
+
+  // Backward compatibility for older records that stored full public URLs.
+  if (/^https?:\/\//i.test(imagePath)) {
+    return imagePath
+  }
+
+  const { data, error } = await supabase.storage
+    .from('bills')
+    .createSignedUrl(imagePath, 60 * 15)
+
+  if (error || !data?.signedUrl) {
+    throw new Error('Unable to load the stored bill image')
+  }
+
+  return data.signedUrl
 }
 
 // ─── Create Bill from Parsed Data ────────────────────────────────────────────
@@ -248,11 +266,11 @@ export async function deleteBill(id: string): Promise<void> {
   const deleteStorage = async (): Promise<void> => {
     if (!bill?.image_url) return
     try {
-      const url = new URL(bill.image_url)
-      const pathParts = url.pathname.split('/storage/v1/object/public/bills/')
-      if (pathParts[1]) {
-        await supabase.storage.from('bills').remove([pathParts[1]])
-      }
+      const path = /^https?:\/\//i.test(bill.image_url)
+        ? new URL(bill.image_url).pathname.split('/storage/v1/object/')[1]?.split('/bills/')[1]?.split('?')[0]
+        : bill.image_url
+
+      if (path) await supabase.storage.from('bills').remove([path])
     } catch {
       // Storage deletion failure is non-fatal
     }
