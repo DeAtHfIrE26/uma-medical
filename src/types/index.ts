@@ -21,7 +21,19 @@ export interface Vendor {
   ifsc_code: string | null
   created_at: string
   bill_count?: number
+  outstanding?: number
 }
+
+export type TransactionType =
+  | 'PURCHASE'
+  | 'PURCHASE_RETURN'
+  | 'PAYMENT_OUT'
+  | 'SALE'
+  | 'SALE_RETURN'
+  | 'PAYMENT_IN'
+  | 'EXPENSE'
+
+export type PaymentStatus = 'UNPAID' | 'PARTIAL' | 'PAID'
 
 export interface Bill {
   id: string
@@ -43,6 +55,14 @@ export interface Bill {
   raw_parsed_json: string | null
   notes: string | null
   created_at: string
+  // V2 fields
+  transaction_type: TransactionType
+  payment_status: PaymentStatus
+  amount_paid: number
+  balance_due: number | null
+  needs_review: boolean
+  ai_confidence: number | null
+  // Joined relations
   vendor?: Vendor
   items?: BillItem[]
 }
@@ -66,6 +86,36 @@ export interface BillItem {
   gst_pct: number | null
   gst_value: number | null
   total_amount: number | null
+}
+
+// ─── Inventory Types ──────────────────────────────────────────────────────────
+
+export interface InventoryItem {
+  id: string
+  item_name: string
+  display_name: string
+  hsn_code: string | null
+  manufacturer: string | null
+  pack: string | null
+  current_stock: number
+  unit: string
+  reorder_level: number
+  created_at: string
+  updated_at: string
+  batches?: InventoryBatch[]
+}
+
+export interface InventoryBatch {
+  id: string
+  inventory_id: string
+  bill_id: string | null
+  batch_no: string
+  expiry_date: string | null
+  quantity: number
+  mrp: number | null
+  purchase_rate: number | null
+  created_at: string
+  inventory?: InventoryItem
 }
 
 // ─── Bill Parsing Types ───────────────────────────────────────────────────────
@@ -104,6 +154,10 @@ export interface ParsedBill {
     credit_note?: number
     other?: number
   }
+  _meta?: {
+    confidence: number
+    low_confidence_fields?: string[]
+  }
   extra_fields?: Record<string, string>
 }
 
@@ -136,6 +190,9 @@ export interface DashboardStats {
   uniqueVendors: number
   recentBills: Bill[]
   topVendors: { name: string; count: number; amount: number }[]
+  expiringBatches: InventoryBatch[]
+  totalOutstanding: number
+  unpaidBillsCount: number
 }
 
 // ─── API Response Types ───────────────────────────────────────────────────────
@@ -154,6 +211,9 @@ export interface BillFilters {
   date_from?: string
   date_to?: string
   payment_mode?: string
+  payment_status?: PaymentStatus
+  transaction_type?: TransactionType
+  needs_review?: boolean
   sort_by?: BillSortField
   sort_order?: SortOrder
   page?: number

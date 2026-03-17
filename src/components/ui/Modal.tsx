@@ -43,7 +43,7 @@ export function Modal({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/70 backdrop-blur-sm z-40"
+            className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[70]"
             onClick={onClose}
           />
           <motion.div
@@ -51,7 +51,7 @@ export function Modal({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 50, scale: 0.95 }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className={`fixed inset-x-4 bottom-4 top-auto z-50 mx-auto ${sizeClasses[size]}
+            className={`fixed inset-x-4 bottom-4 top-auto z-[80] mx-auto ${sizeClasses[size]}
                         bg-surface-800 rounded-3xl shadow-2xl border border-surface-700/50 overflow-hidden`}
           >
             {(title || showClose) && (

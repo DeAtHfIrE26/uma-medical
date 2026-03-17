@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { Building2, Search, FileText, Phone, MapPin, ChevronRight } from 'lucide-react'
-import { getVendors } from '@/services/bills'
+import { Building2, Search, FileText, Phone, MapPin, ChevronRight, Plus } from 'lucide-react'
+import toast from 'react-hot-toast'
+import { createVendor, getVendors } from '@/services/bills'
 import { TopBar } from '@/components/layout/TopBar'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { SkeletonList } from '@/components/ui/LoadingSpinner'
+import { VendorFormModal } from '@/components/vendors/VendorFormModal'
 import type { Vendor } from '@/types'
 
 const AVATAR_COLORS = [
@@ -22,6 +24,8 @@ export function VendorsPage() {
   const [filtered, setFiltered] = useState<Vendor[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
+  const [createOpen, setCreateOpen] = useState(false)
+  const [saving, setSaving] = useState(false)
 
   useEffect(() => {
     getVendors()
@@ -39,12 +43,50 @@ export function VendorsPage() {
     ))
   }, [search, vendors])
 
+  const handleCreateVendor = async (values: {
+    name: string
+    address: string
+    gstin: string
+    pan: string
+    phone: string
+    dl_no: string
+    bank_name: string
+    account_no: string
+    ifsc_code: string
+  }) => {
+    setSaving(true)
+    try {
+      const vendor = await createVendor(values)
+      const next = [...vendors, vendor].sort((a, b) => a.name.localeCompare(b.name))
+      setVendors(next)
+      setFiltered(next)
+      setCreateOpen(false)
+      toast.success('Vendor added')
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Failed to add vendor')
+    } finally {
+      setSaving(false)
+    }
+  }
+
   return (
-    <div className="min-h-dvh">
-      <TopBar title="Vendors" subtitle={`${vendors.length} pharmaceutical companies`} />
+    <div className="min-h-dvh max-w-screen-xl mx-auto">
+      <TopBar
+        title="Vendors"
+        subtitle={`${vendors.length} pharmaceutical companies`}
+        rightAction={
+          <button
+            onClick={() => setCreateOpen(true)}
+            className="w-10 h-10 rounded-xl bg-brand-500 text-white flex items-center justify-center hover:bg-brand-600 transition-colors"
+            aria-label="Add vendor"
+          >
+            <Plus size={18} />
+          </button>
+        }
+      />
 
       {/* Search */}
-      <div className="px-4 pb-4">
+      <div className="px-4 lg:px-8 pb-4">
         <div className="relative">
           <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-surface-400" />
           <input
@@ -57,7 +99,7 @@ export function VendorsPage() {
         </div>
       </div>
 
-      <div className="px-4 space-y-3 pb-4">
+      <div className="px-4 lg:px-8 space-y-3 pb-4">
         {loading ? (
           <SkeletonList count={5} />
         ) : filtered.length === 0 ? (
@@ -70,7 +112,7 @@ export function VendorsPage() {
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="space-y-3"
+            className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-3"
           >
             {filtered.map((vendor, i) => (
               <motion.button
@@ -117,6 +159,14 @@ export function VendorsPage() {
           </motion.div>
         )}
       </div>
+
+      <VendorFormModal
+        isOpen={createOpen}
+        onClose={() => setCreateOpen(false)}
+        onSubmit={handleCreateVendor}
+        loading={saving}
+        title="Add Vendor"
+      />
     </div>
   )
 }

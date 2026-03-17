@@ -3,11 +3,11 @@ import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import {
   User, KeyRound, LogOut, Shield, ChevronRight,
-  Bell, Info, Pill, Copy, CheckCircle2
+  Bell, Info, Pill, Copy, CheckCircle2, Pencil
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { useAuthStore } from '@/stores/auth'
-import { signOut, updatePassword } from '@/services/auth'
+import { signOut, updatePassword, updateProfile } from '@/services/auth'
 import { generateInviteCode } from '@/lib/crypto'
 import { supabase } from '@/lib/supabase'
 import { TopBar } from '@/components/layout/TopBar'
@@ -15,14 +15,17 @@ import { Modal } from '@/components/ui/Modal'
 
 export function SettingsPage() {
   const navigate = useNavigate()
-  const { profile } = useAuthStore()
+  const { profile, setProfile } = useAuthStore()
   const [pwModal, setPwModal] = useState(false)
   const [inviteModal, setInviteModal] = useState(false)
+  const [profileModal, setProfileModal] = useState(false)
   const [newPassword, setNewPassword] = useState('')
   const [confirmPw, setConfirmPw] = useState('')
   const [pwLoading, setPwLoading] = useState(false)
   const [inviteCode, setInviteCode] = useState('')
   const [copied, setCopied] = useState(false)
+  const [profileName, setProfileName] = useState(profile?.full_name || '')
+  const [profileLoading, setProfileLoading] = useState(false)
 
   const handleLogout = async () => {
     await signOut()
@@ -76,9 +79,44 @@ export function SettingsPage() {
     toast.success('Code copied!')
   }
 
+  const handleProfileSave = async () => {
+    if (!profile?.id) return
+    if (!profileName.trim()) {
+      toast.error('Full name is required')
+      return
+    }
+
+    setProfileLoading(true)
+    try {
+      const updated = await updateProfile(profile.id, { full_name: profileName.trim() })
+      setProfile(updated)
+      setProfileModal(false)
+      toast.success('Profile updated')
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Failed to update profile')
+    } finally {
+      setProfileLoading(false)
+    }
+  }
+
   return (
-    <div className="min-h-dvh">
-      <TopBar title="Settings" showBack />
+    <div className="min-h-dvh max-w-screen-xl mx-auto">
+      <TopBar
+        title="Settings"
+        showBack
+        rightAction={
+          <button
+            onClick={() => {
+              setProfileName(profile?.full_name || '')
+              setProfileModal(true)
+            }}
+            className="w-9 h-9 rounded-xl bg-brand-500/10 flex items-center justify-center text-brand-400 hover:bg-brand-500/20 transition-colors"
+            aria-label="Edit profile"
+          >
+            <Pencil size={16} />
+          </button>
+        }
+      />
 
       <div className="px-4 space-y-4 pb-6">
         {/* Profile Card */}
@@ -211,6 +249,35 @@ export function SettingsPage() {
             Valid until used · For Uma Medical Store only
           </p>
           <button onClick={() => setInviteModal(false)} className="btn-secondary w-full py-2.5">Done</button>
+        </div>
+      </Modal>
+
+      <Modal isOpen={profileModal} onClose={() => setProfileModal(false)} title="Edit Profile">
+        <div className="p-5 space-y-4">
+          <div>
+            <label className="text-surface-300 text-sm font-medium block mb-1.5">Full Name</label>
+            <input
+              value={profileName}
+              onChange={(e) => setProfileName(e.target.value)}
+              className="input-base"
+              placeholder="Your full name"
+            />
+          </div>
+          <div>
+            <label className="text-surface-300 text-sm font-medium block mb-1.5">Email</label>
+            <input
+              value={profile?.email || ''}
+              className="input-base opacity-70"
+              disabled
+            />
+          </div>
+          <button
+            onClick={handleProfileSave}
+            disabled={profileLoading || !profileName.trim()}
+            className="btn-primary w-full py-3 disabled:opacity-50"
+          >
+            {profileLoading ? 'Saving...' : 'Save Profile'}
+          </button>
         </div>
       </Modal>
     </div>

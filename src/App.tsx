@@ -18,6 +18,7 @@ import { BillDetailPage } from '@/pages/BillDetailPage'
 import { VendorsPage } from '@/pages/VendorsPage'
 import { VendorDetailPage } from '@/pages/VendorDetailPage'
 import { HistoryPage } from '@/pages/HistoryPage'
+import { InventoryPage } from '@/pages/InventoryPage'
 import { SettingsPage } from '@/pages/SettingsPage'
 import { ResetPasswordPage } from '@/pages/ResetPasswordPage'
 import { FullPageLoader } from '@/components/ui/LoadingSpinner'
@@ -58,6 +59,7 @@ function AppRoutes() {
         <Route path="/bills/:id" element={<BillDetailPage />} />
         <Route path="/vendors" element={<VendorsPage />} />
         <Route path="/vendors/:id" element={<VendorDetailPage />} />
+        <Route path="/inventory" element={<InventoryPage />} />
         <Route path="/history" element={<HistoryPage />} />
         <Route path="/settings" element={<SettingsPage />} />
       </Route>

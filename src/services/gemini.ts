@@ -17,18 +17,33 @@ export async function imageToBase64(file: File): Promise<{ data: string; mimeTyp
   })
 }
 
+// ─── Single Bill Parse (backward-compatible) ─────────────────────────────────
+
 export async function parseBillImage(
   file: File,
   onProgress?: (msg: string) => void
 ): Promise<ParsedBill> {
-  const { data: imageData, mimeType } = await imageToBase64(file)
-  onProgress?.('Uploading image for secure AI extraction...')
+  return parseMultipleBillImages([file], onProgress)
+}
+
+// ─── Multi-Image Bill Parse ───────────────────────────────────────────────────
+
+export async function parseMultipleBillImages(
+  files: File[],
+  onProgress?: (msg: string) => void
+): Promise<ParsedBill> {
+  onProgress?.('Preparing images for secure AI extraction...')
+
+  const encoded = await Promise.all(files.map(f => imageToBase64(f)))
+  onProgress?.('Sending to Gemini AI for extraction...')
 
   const response = await apiRequest<{ parsed: ParsedBill; status?: string }>(
     '/api/parse-bill',
     {
       method: 'POST',
-      body: JSON.stringify({ imageData, mimeType }),
+      body: JSON.stringify({
+        images: encoded.map(e => ({ data: e.data, mimeType: e.mimeType })),
+      }),
     }
   )
 
@@ -38,6 +53,8 @@ export async function parseBillImage(
 
   return response.parsed
 }
+
+// ─── Re-parse a Specific Field ────────────────────────────────────────────────
 
 export async function reparseBillField(
   file: File,

@@ -19,6 +19,8 @@
     @apply bg-surface-900 text-white font-sans;
     min-height: 100dvh;
     overflow-x: hidden;
+    /* Prevent pull-to-refresh on mobile but allow scroll */
+    overscroll-behavior-y: none;
   }
 
   #root {
@@ -40,14 +42,6 @@
   }
   ::-webkit-scrollbar-thumb:hover {
     @apply bg-surface-500;
-  }
-
-  /* Safe area for mobile notches */
-  .safe-top {
-    padding-top: env(safe-area-inset-top);
-  }
-  .safe-bottom {
-    padding-bottom: env(safe-area-inset-bottom);
   }
 }
 
@@ -72,7 +66,8 @@
            text-white font-semibold rounded-xl px-6 py-3
            transition-all duration-200 active:scale-[0.98]
            disabled:opacity-50 disabled:cursor-not-allowed
-           flex items-center justify-center gap-2;
+           flex items-center justify-center gap-2
+           select-none;
   }
 
   /* Button secondary */
@@ -82,19 +77,21 @@
            border border-surface-600 hover:border-surface-500
            transition-all duration-200 active:scale-[0.98]
            disabled:opacity-50 disabled:cursor-not-allowed
-           flex items-center justify-center gap-2;
+           flex items-center justify-center gap-2
+           select-none;
   }
 
-  /* Bottom nav safe area */
-  .bottom-nav {
-    @apply fixed bottom-0 left-0 right-0 z-50;
-    padding-bottom: env(safe-area-inset-bottom);
-  }
-
-  /* Page container */
+  /* Page container — mobile gets bottom padding for nav, desktop handled by layout */
   .page-container {
-    @apply flex flex-col min-h-dvh;
+    @apply flex flex-col;
+    min-height: 100dvh;
     padding-bottom: calc(80px + env(safe-area-inset-bottom));
+  }
+
+  @media (min-width: 1024px) {
+    .page-container {
+      padding-bottom: 1.5rem;
+    }
   }
 
   /* Stat card */
@@ -114,21 +111,46 @@
     animation: shimmer 1.5s infinite;
   }
 
-  /* Table */
+  /* Table — desktop horizontal scroll with sticky first col */
   .data-table {
     @apply w-full text-sm;
+    border-collapse: collapse;
   }
   .data-table th {
-    @apply text-surface-400 font-medium text-xs uppercase tracking-wider py-2 px-3 text-left bg-surface-800/50;
+    @apply text-surface-400 font-semibold text-xs uppercase tracking-wider
+           py-2.5 px-3 text-left bg-surface-800/80 whitespace-nowrap;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+  }
+  .data-table th:first-child {
+    position: sticky;
+    left: 0;
+    z-index: 2;
+    background: #1a2744;
   }
   .data-table td {
-    @apply py-2.5 px-3 border-b border-surface-700/50 text-surface-200;
+    @apply py-3 px-3 border-b border-surface-700/40 text-surface-200 whitespace-nowrap;
+  }
+  .data-table td:first-child {
+    position: sticky;
+    left: 0;
+    background: #1e293b;
+    z-index: 1;
   }
   .data-table tr:last-child td {
     @apply border-b-0;
   }
   .data-table tr:hover td {
-    @apply bg-surface-700/20;
+    @apply bg-surface-700/25;
+  }
+  .data-table tr:hover td:first-child {
+    background: #253349;
+  }
+
+  /* Item card — mobile-friendly alternative to table rows */
+  .item-card {
+    @apply glass-card p-3 space-y-2;
   }
 }
 
@@ -151,5 +173,13 @@
 
   .h-dvh {
     height: 100dvh;
+  }
+
+  /* Safe area utilities */
+  .pt-safe {
+    padding-top: env(safe-area-inset-top);
+  }
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom);
   }
 }

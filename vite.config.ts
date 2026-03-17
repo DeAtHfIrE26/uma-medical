@@ -23,22 +23,9 @@ export default defineConfig({
         scope: '/',
         start_url: '/',
         icons: [
-          {
-            src: 'pwa-192x192.png',
-            sizes: '192x192',
-            type: 'image/png',
-          },
-          {
-            src: 'pwa-512x512.png',
-            sizes: '512x512',
-            type: 'image/png',
-          },
-          {
-            src: 'pwa-512x512.png',
-            sizes: '512x512',
-            type: 'image/png',
-            purpose: 'any maskable',
-          },
+          { src: 'pwa-192x192.png', sizes: '192x192', type: 'image/png' },
+          { src: 'pwa-512x512.png', sizes: '512x512', type: 'image/png' },
+          { src: 'pwa-512x512.png', sizes: '512x512', type: 'image/png', purpose: 'any maskable' },
         ],
       },
       workbox: {
@@ -65,16 +52,31 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
+  server: {
+    port: 5173,
+    strictPort: false,   // allow fallback ports (5174, 5175…) when 5173 is taken
+    proxy: {
+      // All /api/* requests are forwarded to the local dev-api server (dev-server.mjs).
+      // The dev-api server starts automatically when you run `npm run dev`.
+      '/api': {
+        target: 'http://localhost:3001',
+        changeOrigin: true,
+        secure: false,
+        timeout: 120_000,       // 2 min — Gemini calls can take a while
+        proxyTimeout: 120_000,
+      },
+    },
+  },
   build: {
     rollupOptions: {
       output: {
         manualChunks: {
-          'vendor-react': ['react', 'react-dom', 'react-router-dom'],
+          'vendor-react':    ['react', 'react-dom', 'react-router-dom'],
           'vendor-supabase': ['@supabase/supabase-js'],
-          'vendor-ui': ['framer-motion', 'lucide-react', 'react-hot-toast'],
-          'vendor-form': ['react-hook-form', '@hookform/resolvers', 'zod'],
-          'vendor-query': ['@tanstack/react-query'],
-          'vendor-utils': ['date-fns', 'zustand'],
+          'vendor-ui':       ['framer-motion', 'lucide-react', 'react-hot-toast'],
+          'vendor-form':     ['react-hook-form', '@hookform/resolvers', 'zod'],
+          'vendor-query':    ['@tanstack/react-query'],
+          'vendor-utils':    ['date-fns', 'zustand'],
         },
       },
     },
